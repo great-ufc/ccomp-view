@@ -30,13 +30,13 @@ $(document).ready(function() {
         var data = confData.feed.entry;
 
         /* Processing json data */
-        var table = [];
+        var allDataTable = []; var confTable = [];
         var lines = data[data.length - 1]["gs$cell"]["row"] - 1;
         var columns = data[data.length - 1]["gs$cell"]["col"];
 
         for(var l = 0; l < lines; l++){
             for(var c = 0; c < columns; c++){
-                table[l] = [];
+                allDataTable[l] = [];
             }   
         }
             
@@ -47,15 +47,49 @@ $(document).ready(function() {
                 value:  data[index]["gs$cell"]["$t"]
             };
             if(sData.row == 1) continue;
-            table[sData.row - 2][sData.col - 1] = sData.value;
+            allDataTable[sData.row - 2][sData.col - 1] = sData.value;
         }
 
-        console.log(table);
+        for(var l = 0; l < lines; l++){
+            var confLine = [];
+            for(var c = 0; c < columns; c++){
+                if(![0, 3, 6, 8].includes(c)){
+                    confLine.push(allDataTable[l][c]);
+                }
+            }
+
+            if(confLine.length != 0){
+                confTable.push(confLine);
+            }
+        }
+
+        console.log(allDataTable);
+        console.log(confTable);
+
         var geocoder = new google.maps.Geocoder();
         for(var l = 0; l < lines; l++){
-            var confInfo = new Conference(table[l]);
+            var confInfo = new Conference(allDataTable[l]);
             getGeocodeAddressAndPutMarker(geocoder, confInfo, map);
         }
+
+        $('#dataTableConf').DataTable({
+            data: confTable,
+            columns:[
+                { title: "Name", width: "30%" },
+                { title: "Qualis", className: 'text-center', width: "10%" },
+                { title: "When", className: 'text-center', width: "10%" },
+                { title: "Where", className: 'text-center', width: "20%" },
+                { title: "Deadline", className: 'text-center', width: "10%" },
+                { title: "Link", width: "20%", render: function(data){
+                    return '<a href="' + data + '" target="_blank">' + data + '</a>'
+                }},
+            ]
+        });
+
+        //$('tr').addClass('d-flex');
+
+        //$('#dataTableJournals').DataTable();
+
     });
 });
 
